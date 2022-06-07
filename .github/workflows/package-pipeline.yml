@@ -1,0 +1,70 @@
+name: Package-Pipeline
+
+on:
+  workflow_run:
+    workflows: Test-Pipeline
+    types: completed
+  workflow_dispatch:
+    inputs:
+      relativeDockerfilePath:
+        required: false
+        default: src/main/docker/Dockerfile.jvm
+      settingsFile:
+        required: false
+        default: pom.xml
+      registry:
+        required: false
+        default: docker.io
+      imageName:
+        required: false
+        default: devon4quarkus-reference-github
+      region:
+        required: false
+        default: 
+      isECR:
+        required: false
+        default: 
+
+permissions:
+  actions: write
+
+env:
+  quality_pipeline: 'quality-pipeline.yml'
+  relativeDockerfilePath: ${{ github.event.inputs.relativeDockerfilePath || '' }}
+  settingsFile: ${{ github.event.inputs.settingsFile || 'pom.xml' }}
+  registry: ${{ github.event.inputs.registry || 'docker.io' }}
+  imageName: ${{ github.event.inputs.imageName || 'devon4quarkus-reference-github' }}
+  region: ${{ github.event.inputs.region || '' }}
+  isECR: ${{ github.event.inputs.isECR || '' }}
+
+jobs:
+  on-success:
+    name: Package
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+    - name: Checkout repository code
+      uses: actions/checkout@v2
+
+    - name: Download Build Pipeline Artifact
+      uses: dawidd6/action-download-artifact@v2
+      with:
+        workflow: 'build-pipeline.yml'
+        commit: ${{ github.event.pull_request.head.sha }}
+    
+    - name: Build and push image to registry
+      run: .github/workflows/scripts/package.sh -f /${{ env.relativeDockerfilePath }} -t /${{ env.settingsFile }} -c  -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASSWORD }}  -r ${{ env.registry }} -i ${{ env.imageName }} -b 
+      if: ${{ env.isECR == '' }}
+
+    - name: Build and push image to registry (AWS)
+      run: .github/workflows/scripts/package.sh -f /${{ env.relativeDockerfilePath }} -t /${{ env.settingsFile }} -c  -a ${{ secrets.AWS_ACCESS_KEY }} -s ${{ secrets.AWS_SECRET_ACCESS_KEY }} -l ${{ env.region }} -r ${{ env.registry }} -i ${{ env.imageName }} -b 
+      if: ${{ env.isECR == 'true' }}
+    
+  # mark to insert step for additional artifact #
+  on-failure:
+    name: Quality Pipeline Failed
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+    - name: Cancel Pipeline
+      uses: andymckay/cancel-action@0.2
