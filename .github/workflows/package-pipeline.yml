@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: Test-Pipeline
     types: completed
-  worflow_dispatch:
+  workflow_dispatch:
     inputs:
       relativeDockerfilePath:
         required: false
@@ -20,7 +20,10 @@ on:
         default: devon4quarkus-github-test
       region:
         required: false
-        default: 
+        default: ''
+      isECR:
+        required: false
+        default: ''
 
 permissions:
   actions: write
@@ -32,6 +35,7 @@ env:
   registry: ${{ github.event.inputs.registry || 'docker.io' }}
   imageName: ${{ github.event.inputs.imageName || 'devon4quarkus-github-test' }}
   region: ${{ github.event.inputs.region || '' }}
+  isECR: ${{ github.event.inputs.isECR || '' }}
 
 jobs:
   on-success:
