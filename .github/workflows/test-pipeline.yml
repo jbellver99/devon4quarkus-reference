@@ -1,0 +1,47 @@
+name: Test-Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_pipeline:
+        required: false
+        default: Build-Pipeline
+
+  workflow_run:
+    workflows: [ Build-Pipeline ]
+    types:
+      - completed
+
+env:
+  build_pipeline: ${{ github.event.name == 'workflow_run' && format('Build-Pipeline') || github.event.inputs.build_pipeline }}
+
+jobs:
+    on-success:
+      name: Test
+      runs-on: ubuntu-latest
+      if: ${{ github.event.workflow_run.conclusion == 'success' }}
+      steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v2
+
+      - name: Download Build Pipeline Artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: build-pipeline.yml
+          commit: ${{github.event.pull_request.head.sha}}
+
+      - name: Test
+        run: .github/workflows/scripts/test.sh
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: '**/TEST-*.xml'
+    
+    on-failure:
+      name: Failed
+      runs-on: ubuntu-latest
+      if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+      steps:
+        - run: echo 'The trigerring workflow failed.'; exit 1
