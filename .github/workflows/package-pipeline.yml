@@ -17,7 +17,7 @@ on:
         default: docker.io
       imageName:
         required: false
-        default: devon4quarkus-reference-github
+        default: jbellver99/devon4quarkus-reference-github
       region:
         required: false
         default: 
@@ -33,7 +33,7 @@ env:
   relativeDockerfilePath: ${{ github.event.inputs.relativeDockerfilePath || 'src/main/docker/Dockerfile.jvm' }}
   settingsFile: ${{ github.event.inputs.settingsFile || 'pom.xml' }}
   registry: ${{ github.event.inputs.registry || 'docker.io' }}
-  imageName: ${{ github.event.inputs.imageName || 'devon4quarkus-reference-github' }}
+  imageName: ${{ github.event.inputs.imageName || 'jbellver99/devon4quarkus-reference-github' }}
   region: ${{ github.event.inputs.region || '' }}
   isECR: ${{ github.event.inputs.isECR || '' }}
 
