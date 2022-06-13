@@ -4,6 +4,9 @@ on:
   workflow_run:
     workflows: Test-Pipeline
     types: completed
+    branches:
+      - 'release/*'
+      - 'develop'
   workflow_dispatch:
     inputs:
       relativeDockerfilePath:
