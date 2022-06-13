@@ -2,8 +2,8 @@ name: Package-Pipeline
 
 on:
   workflow_run:
-    workflows: Test-Pipeline
-    types: completed
+    workflows: [Test-Pipeline]
+    types: [completed]
     branches:
       - 'release/*'
       - 'develop'
@@ -23,13 +23,10 @@ on:
         default: devon4quarkus-reference-github
       region:
         required: false
-        default: 
+        default: ''
       isECR:
         required: false
-        default: 
-    branches:
-      - 'release/*'
-      - 'develop'
+        default: ''
 
 permissions:
   actions: write
