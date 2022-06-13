@@ -2,11 +2,8 @@ name: Package-Pipeline
 
 on:
   workflow_run:
-    workflows: [Test-Pipeline]
-    types: [completed]
-    branches:
-      - 'release/*'
-      - 'develop'
+    workflows: Test-Pipeline
+    types: completed
   workflow_dispatch:
     inputs:
       relativeDockerfilePath:
